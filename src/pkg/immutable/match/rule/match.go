@@ -69,9 +69,14 @@ func (rm *Matcher) Match(ctx context.Context, pid int64, c iselector.Candidate) 
 			continue
 		}
 		tagSelector := r.TagSelectors[0]
-		// for immutable policy, should not keep untagged artifacts by default.
+		// for immutable policy, should keep untagged artifacts for non-matches tag selectors
+		// and exclude untagged artifacts for matches tag selector.
+		untagged := "{\"untagged\": false}"
+		if tagSelector.Decoration == "excludes" {
+			untagged = "{\"untagged\": true}"
+		}
 		selector, err = index.Get(tagSelector.Kind, tagSelector.Decoration,
-			tagSelector.Pattern, "{\"untagged\": false}")
+			tagSelector.Pattern, untagged)
 		if err != nil {
 			return false, err
 		}
